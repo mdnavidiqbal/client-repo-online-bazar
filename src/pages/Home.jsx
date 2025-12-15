@@ -1,4 +1,4 @@
-import { Helmet } from 'react-helmet-async'
+// import { Helmet } from 'react-helmet-async'
 import { motion } from 'framer-motion'
 import { ChefHat, Clock, Shield, Truck } from 'lucide-react'
 import HeroSection from '../components/HeroSection'
