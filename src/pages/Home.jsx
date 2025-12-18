@@ -1,111 +1,156 @@
-// import { Helmet } from 'react-helmet-async'
-import { motion } from 'framer-motion'
-import { ChefHat, Clock, Shield, Truck } from 'lucide-react'
-import HeroSection from '../components/HeroSection'
-import MealCard from '../components/MealCard'
+import { useEffect, useState } from "react";
+import axios from "axios";
+import { Link } from "react-router-dom";
 
-const Home = () => {
-  const features = [
-    {
-      icon: <ChefHat className="w-8 h-8" />,
-      title: 'Local Chefs',
-      description: 'Authentic home-cooked meals by local culinary experts'
-    },
-    {
-      icon: <Clock className="w-8 h-8" />,
-      title: 'Fresh & Quick',
-      description: 'Freshly prepared meals delivered within 30-45 minutes'
-    },
-    {
-      icon: <Shield className="w-8 h-8" />,
-      title: '100% Safe',
-      description: 'Hygienic preparation and contactless delivery'
-    },
-    {
-      icon: <Truck className="w-8 h-8" />,
-      title: 'Free Delivery',
-      description: 'Free delivery on orders above $15'
-    }
-  ]
+export default function Home() {
+  const [meals, setMeals] = useState([]);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    setLoading(true);
+    setError(null);
+    
+    axios.get(`${import.meta.env.VITE_API_URL}/api/meals?page=${page}&limit=10`)
+      .then(res => {
+        setMeals(res.data.meals || []);
+        setTotalPages(res.data.totalPages || 1);
+      })
+      .catch(err => {
+        console.error("Error fetching meals:", err);
+        setError("Failed to load meals. Please try again.");
+        setMeals([]);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  }, [page]);
+
+  // Loading state
+  if (loading) {
+    return (
+      <div className="p-6 text-center">
+        <h1 className="text-3xl font-bold mb-4">Delicious Meals</h1>
+        <div className="flex justify-center items-center h-64">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        </div>
+        <p className="mt-4 text-gray-600">Loading meals...</p>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className="p-6 text-center">
+        <h1 className="text-3xl font-bold mb-4">Delicious Meals</h1>
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4 max-w-md mx-auto">
+          <p className="text-red-600">{error}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="mt-3 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <>
-      <Helmet>
-        <title>LocalChefBazaar - Home Cooked Meals</title>
-      </Helmet>
+    <div className="p-6">
+      <h1 className="text-3xl font-bold mb-6 text-center">Delicious Meals</h1>
       
-      <HeroSection />
-      
-      {/* Features Section */}
-      <section className="py-16 bg-white">
-        <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center mb-12">Why Choose LocalChefBazaar?</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {features.map((feature, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1 }}
-                className="text-center p-6 rounded-lg bg-background hover:shadow-lg transition-shadow"
+      {meals.length === 0 ? (
+        <div className="text-center py-10">
+          <p className="text-gray-500 text-lg">No meals available at the moment.</p>
+        </div>
+      ) : (
+        <>
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {meals.map(meal => (
+              <div 
+                key={meal._id} 
+                className="border border-gray-200 p-4 rounded-xl shadow-sm hover:shadow-md transition-shadow bg-white"
               >
-                <div className="inline-flex items-center justify-center w-16 h-16 bg-primary rounded-full text-white mb-4">
-                  {feature.icon}
+                <div className="relative overflow-hidden rounded-lg h-48">
+                  <img 
+                    src={meal.foodImage} 
+                    alt={meal.foodName} 
+                    className="h-full w-full object-cover hover:scale-105 transition-transform duration-300"
+                    onError={(e) => {
+                      e.target.src = "https://via.placeholder.com/400x300?text=No+Image";
+                    }}
+                  />
                 </div>
-                <h3 className="text-xl font-semibold mb-2">{feature.title}</h3>
-                <p className="text-gray-600">{feature.description}</p>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-      
-      {/* Daily Meals Section */}
-      <section className="py-16">
-        <div className="container mx-auto px-4">
-          <div className="flex justify-between items-center mb-8">
-            <h2 className="text-3xl font-bold">Today's Special Meals</h2>
-            <button className="btn-primary">View All</button>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {/* Meal cards will be populated dynamically */}
-            {[1, 2, 3, 4, 5, 6].map((item) => (
-              <MealCard key={item} />
-            ))}
-          </div>
-        </div>
-      </section>
-      
-      {/* Testimonials Section */}
-      <section className="py-16 bg-white">
-        <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center mb-12">What Our Customers Say</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {[
-              { name: 'Sarah Johnson', review: 'Best homemade food ever! The biryani reminded me of my grandmother\'s cooking.' },
-              { name: 'Michael Chen', review: 'Convenient, delicious, and affordable. I order almost every day!' },
-              { name: 'Emma Wilson', review: 'The chefs are amazing. Every meal feels like it\'s made with love.' }
-            ].map((testimonial, index) => (
-              <div key={index} className="card">
-                <div className="flex items-center mb-4">
-                  <div className="w-12 h-12 bg-primary rounded-full flex items-center justify-center text-white font-bold">
-                    {testimonial.name.charAt(0)}
-                  </div>
-                  <div className="ml-4">
-                    <h4 className="font-semibold">{testimonial.name}</h4>
-                    <div className="flex text-yellow-400">
-                      {'★'.repeat(5)}
-                    </div>
-                  </div>
+                <h2 className="font-bold text-xl mt-3 text-gray-800">{meal.foodName}</h2>
+                <p className="text-gray-600 mt-1">
+                  <span className="font-medium">Chef:</span> {meal.chefName}
+                </p>
+                <div className="flex justify-between items-center mt-3">
+                  <p className="text-blue-600 font-bold text-lg">${meal.price}</p>
+                  <Link 
+                    to={`/meals/${meal._id}`} 
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                  >
+                    View Details
+                  </Link>
                 </div>
-                <p className="text-gray-600 italic">"{testimonial.review}"</p>
               </div>
             ))}
           </div>
-        </div>
-      </section>
-    </>
-  )
-}
 
-export default Home
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="flex justify-center mt-8 gap-2">
+              <button
+                disabled={page === 1}
+                onClick={() => setPage(prev => prev - 1)}
+                className={`px-4 py-2 rounded-lg ${page === 1 
+                  ? "bg-gray-100 text-gray-400 cursor-not-allowed" 
+                  : "bg-gray-200 text-gray-700 hover:bg-gray-300"}`}
+              >
+                Previous
+              </button>
+              
+              {[...Array(totalPages)].map((_, i) => {
+                const pageNumber = i + 1;
+                // Show only nearby pages for better UX
+                if (
+                  pageNumber === 1 || 
+                  pageNumber === totalPages || 
+                  (pageNumber >= page - 1 && pageNumber <= page + 1)
+                ) {
+                  return (
+                    <button
+                      key={i}
+                      className={`px-4 py-2 rounded-lg ${page === pageNumber 
+                        ? "bg-blue-600 text-white" 
+                        : "bg-gray-200 text-gray-700 hover:bg-gray-300"}`}
+                      onClick={() => setPage(pageNumber)}
+                    >
+                      {pageNumber}
+                    </button>
+                  );
+                }
+                return null;
+              })}
+              
+              <button
+                disabled={page === totalPages}
+                onClick={() => setPage(prev => prev + 1)}
+                className={`px-4 py-2 rounded-lg ${page === totalPages 
+                  ? "bg-gray-100 text-gray-400 cursor-not-allowed" 
+                  : "bg-gray-200 text-gray-700 hover:bg-gray-300"}`}
+              >
+                Next
+              </button>
+            </div>
+          )}
+        </>
+      )}
+    </div>
+  );
+}

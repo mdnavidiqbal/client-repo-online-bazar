@@ -1,12 +1,14 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+// import { Link, useNavigate } from 'react-router-dom'
 import { Menu, X, ChefHat, User } from 'lucide-react'
-import { useAuth } from '../contexts/AuthContext'
+// import { useAuth } from '../contexts/AuthProvider'
 import toast from 'react-hot-toast'
+import { Link, useNavigate } from 'react-router'
+import useAuth from '../hooks/useAuth'
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false)
-  const { user, logout } = useAuth()
+  const { user, logout } = useAuth
   const navigate = useNavigate()
 
   const handleLogout = async () => {
